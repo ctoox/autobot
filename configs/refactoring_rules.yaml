@@ -1,0 +1,59 @@
+# 重构规则引擎配置
+
+refactoring_rules:
+  priority_order:
+    - "security"
+    - "performance"
+    - "maintainability"
+    - "observability"
+
+  async_migration:
+    enabled: true
+    patterns:
+      - source: "time.sleep"
+        target: "asyncio.sleep"
+      - source: "requests.get"
+        target: "aiohttp.ClientSession.get"
+      - source: "requests.post"
+        target: "aiohttp.ClientSession.post"
+      - source: "paramiko.SSHClient.exec_command"
+        target: "asyncssh.connect"
+    requires:
+      - "import asyncio"
+      - "from aiohttp import ClientSession"
+
+  security_hardening:
+    enabled: true
+    patterns:
+      - type: "hardcoded_password"
+        fix: "os.environ.get('DEVICE_PASSWORD', '')"
+      - type: "hardcoded_api_key"
+        fix: "os.environ.get('API_KEY', '')"
+      - type: "hardcoded_secret"
+        fix: "vault.get_secret('secret_name')"
+    requires:
+      - "import os"
+
+  config_externalization:
+    enabled: true
+    patterns:
+      - type: "hardcoded_host"
+        config_key: "device.hostname"
+      - type: "hardcoded_port"
+        config_key: "device.port"
+      - type: "hardcoded_ip"
+        config_key: "device.ip_address"
+
+  telemetry_instrumentation:
+    enabled: true
+    default_metrics:
+      - type: "histogram"
+        name: "ops_script_duration_seconds"
+        description: "脚本执行耗时"
+      - type: "counter"
+        name: "ops_script_errors_total"
+        description: "脚本错误计数"
+        labels: ["script_name", "error_type"]
+      - type: "gauge"
+        name: "ops_devices_connected"
+        description: "已连接设备数"

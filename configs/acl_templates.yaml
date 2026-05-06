@@ -1,0 +1,60 @@
+# ACL 动态下发模板
+
+acl_templates:
+  block_ip:
+    description: "IP 封堵规则模板"
+    parameters:
+      - name: "blocked_ip"
+        type: "ip_address"
+        required: true
+      - name: "reason"
+        type: "string"
+        required: true
+      - name: "duration"
+        type: "duration"
+        default: "permanent"
+    template: |
+      ip access-list extended BLOCK_IP_DYNAMIC
+       remark Block {{ blocked_ip }} - Reason: {{ reason }}
+       deny ip host {{ blocked_ip }} any
+       permit ip any any
+
+  unblock_ip:
+    description: "IP 解封规则模板"
+    parameters:
+      - name: "unblocked_ip"
+        type: "ip_address"
+        required: true
+    template: |
+      ip access-list extended BLOCK_IP_DYNAMIC
+       no deny ip host {{ unblocked_ip }} any
+
+  rate_limit:
+    description: "限速规则模板"
+    parameters:
+      - name: "source_ip"
+        type: "ip_address"
+        required: true
+      - name: "rate_mbps"
+        type: "integer"
+        required: true
+    template: |
+      class-map match-any RATE_LIMIT_{{ source_ip | replace(".", "_") }}
+       match access-group name RATE_LIMIT_ACL
+      policy-map RATE_LIMIT_POLICY
+       class RATE_LIMIT_{{ source_ip | replace(".", "_") }}
+       police {{ rate_mbps }}000000 conform-action transmit exceed-action drop
+
+  whitelist:
+    description: "白名单规则模板"
+    parameters:
+      - name: "allowed_ip"
+        type: "ip_address"
+        required: true
+      - name: "description"
+        type: "string"
+        required: true
+    template: |
+      ip access-list extended WHITELIST
+       remark Allow {{ allowed_ip }} - {{ description }}
+       permit ip host {{ allowed_ip }} any

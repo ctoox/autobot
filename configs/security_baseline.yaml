@@ -1,0 +1,49 @@
+# 安全基线配置
+
+security_baseline:
+  credentials:
+    policy: "no_hardcoded"
+    allowed_sources:
+      - "environment_variables"
+      - "vault"
+      - "kms"
+      - "config_file_encrypted"
+    rotation_days: 90
+
+  ssh:
+    min_key_bits: 2048
+    allowed_key_types:
+      - "ed25519"
+      - "rsa-4096"
+    host_key_verification: "strict"
+    auto_add_policy: false
+    cipher_preference:
+      - "chacha20-poly1305@openssh.com"
+      - "aes256-gcm@openssh.com"
+
+  acl_rules:
+    management: "dynamic"
+    template_dir: "configs/acl_templates/"
+    approval_required: true
+    audit_log: true
+    rollback_enabled: true
+
+  logging:
+    sensitive_data_masking: true
+    masked_fields:
+      - "password"
+      - "secret"
+      - "token"
+      - "api_key"
+    audit_fields:
+      - "user"
+      - "timestamp"
+      - "action"
+      - "target_device"
+      - "result"
+
+  scanning:
+    bandit_enabled: true
+    safety_enabled: true
+    fail_on_critical: true
+    fail_on_high: true

@@ -1,0 +1,50 @@
+# 核心网络设备规范配置
+
+network_specs:
+  telemetry:
+    enabled: true
+    endpoint: "http://telemetry-collector:9090/api/v1/push"
+    interval_seconds: 30
+    metrics:
+      - name: "device_cpu_usage"
+        type: "gauge"
+        description: "设备 CPU 使用率"
+      - name: "device_memory_usage"
+        type: "gauge"
+        description: "设备内存使用率"
+      - name: "device_interface_errors"
+        type: "counter"
+        description: "接口错误计数"
+      - name: "device_bgp_session_state"
+        type: "gauge"
+        description: "BGP 会话状态"
+      - name: "script_execution_duration"
+        type: "histogram"
+        description: "脚本执行耗时"
+
+  prometheus:
+    pushgateway: "http://prometheus-pushgateway:9091"
+    job_name: "ops-scripts"
+    scrape_interval: "15s"
+
+  connection:
+    async_enabled: true
+    pool_size: 10
+    timeout_seconds: 30
+    retry_count: 3
+    retry_delay_seconds: 5
+
+  logging:
+    format: "json"
+    level: "INFO"
+    output: ["stdout", "file"]
+    file_path: "/var/log/ops-agent/agent.log"
+    max_size_mb: 100
+    backup_count: 5
+
+  security:
+    ssh_key_type: "ed25519"
+    ssh_key_bits: 256
+    host_key_policy: "strict"
+    require_mfa: true
+    session_timeout_minutes: 30
